@@ -1,0 +1,15 @@
+{
+  "name": "erzurum-harita",
+  "version": "1.0.0",
+  "description": "Erzurum gerçek zamanlı konum paylaşım haritası",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "localtunnel": "^2.0.2",
+    "socket.io": "^4.7.5"
+  }
+}

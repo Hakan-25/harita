@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Erzurum gerçek zamanlı konum paylaşım haritası">
+  <meta name="theme-color" content="#0f0f23">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Erzurum Harita">
+
+  <title>Erzurum Harita - Konum Paylaşımı</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <!-- Harita Konteyneri -->
+  <div id="map"></div>
+
+  <!-- Üst Bilgi Çubuğu -->
+  <div id="top-bar">
+    <div class="top-bar-left">
+      <div class="logo-icon">🗺️</div>
+      <div class="app-title">
+        <span class="title-text">Erzurum</span>
+        <span class="subtitle-text" id="connection-status">Bağlanıyor...</span>
+      </div>
+    </div>
+    <div class="top-bar-right">
+      <div class="user-count-badge" id="user-count">
+        <span class="count-dot"></span>
+        <span class="count-text">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kullanıcı Bilgi Kartı -->
+  <div id="user-card" class="hidden">
+    <div class="user-card-header">
+      <div class="user-avatar" id="user-avatar">🏔️</div>
+      <div class="user-info">
+        <div class="user-name-row">
+          <span id="user-name">Yükleniyor...</span>
+          <button id="edit-name-btn" class="icon-btn" title="İsmi Değiştir">✏️</button>
+        </div>
+        <span class="user-coords" id="user-coords">Konum bekleniyor...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- İsim Değiştirme Modalı -->
+  <div id="name-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h3>İsmini Değiştir</h3>
+      <input type="text" id="name-input" maxlength="20" placeholder="Yeni ismin...">
+      <div class="modal-buttons">
+        <button id="name-cancel" class="btn btn-secondary">İptal</button>
+        <button id="name-save" class="btn btn-primary">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kullanıcı Listesi Paneli -->
+  <button id="users-toggle" class="fab-button">
+    <span>👥</span>
+  </button>
+
+  <div id="users-panel" class="hidden">
+    <div class="panel-header">
+      <h3>Bağlı Kullanıcılar</h3>
+      <button id="close-panel" class="icon-btn">✕</button>
+    </div>
+    <div id="users-list"></div>
+  </div>
+
+  <!-- Konum Butonları -->
+  <div id="map-controls">
+    <button id="center-me" class="control-btn" title="Konumuma Git">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+      </svg>
+    </button>
+    <button id="fit-all" class="control-btn" title="Herkesi Göster">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+      </svg>
+    </button>
+  </div>
+
+
+  <!-- Toast Bildirimleri -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
