@@ -242,7 +242,9 @@
   }
 
   // ============ OTOMATİK KONUM TAKİBİ ============
-  // Kullanıcı hiçbir şey yapmak zorunda değil - uygulama açılır açılmaz konum istenir
+  // Maksimum hassasiyet için optimizasyon
+  let bestAccuracy = Infinity;
+
   function startAutoLocation() {
     if (!navigator.geolocation) {
       userCoordsEl.textContent = 'Cihaz konum desteklemiyor';
@@ -250,14 +252,24 @@
       return;
     }
 
-    // Hemen konum izlemeye başla
+    // Yüksek hassasiyetli konum izleme
     navigator.geolocation.watchPosition(
       (position) => {
-        myLat = position.coords.latitude;
-        myLng = position.coords.longitude;
-        myAccuracy = position.coords.accuracy;
+        const newLat = position.coords.latitude;
+        const newLng = position.coords.longitude;
+        const newAccuracy = position.coords.accuracy;
 
-        userCoordsEl.textContent = `${myLat.toFixed(5)}, ${myLng.toFixed(5)} (±${Math.round(myAccuracy)}m)`;
+        // Daha iyi doğruluk geldiğinde veya her zaman güncelle
+        // (GPS zamanla daha iyi sonuç verir)
+        myLat = newLat;
+        myLng = newLng;
+        myAccuracy = newAccuracy;
+
+        if (newAccuracy < bestAccuracy) {
+          bestAccuracy = newAccuracy;
+        }
+
+        userCoordsEl.textContent = `${myLat.toFixed(6)}, ${myLng.toFixed(6)} (±${Math.round(myAccuracy)}m)`;
 
         updateMyMarker();
         sendLocation();
@@ -265,7 +277,7 @@
         // İlk konumda haritayı oraya götür
         if (!firstLocationReceived) {
           firstLocationReceived = true;
-          map.setView([myLat, myLng], 15, { animate: true });
+          map.setView([myLat, myLng], 17, { animate: true });
         }
       },
       (error) => {
@@ -278,22 +290,25 @@
             userCoordsEl.textContent = 'Konum alınamıyor';
             break;
           case error.TIMEOUT:
-            userCoordsEl.textContent = 'Konum zaman aşımı';
+            userCoordsEl.textContent = 'Konum zaman aşımı - tekrar deneniyor...';
+            // Timeout olursa tekrar dene
+            setTimeout(startAutoLocation, 3000);
             break;
         }
       },
       {
-        enableHighAccuracy: true,
-        maximumAge: 5000,
-        timeout: 15000
+        enableHighAccuracy: true,  // GPS kullan (WiFi değil)
+        maximumAge: 0,             // Her zaman taze konum al, cache kullanma
+        timeout: 30000             // 30 saniye bekle (GPS uyduları için süre)
       }
     );
 
-    // Düzenli aralıklarla sunucuya gönder (GPS güncelleme olmasa bile son bilinen konumu)
+    // Düzenli aralıklarla sunucuya gönder
     setInterval(() => {
       if (myLat !== null && myLng !== null) sendLocation();
     }, LOCATION_UPDATE_INTERVAL);
   }
+
 
   function updateMyMarker() {
     if (myLat === null || myLng === null) return;
