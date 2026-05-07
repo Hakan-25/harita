@@ -64,6 +64,9 @@
   const centerMe = document.getElementById('center-me');
   const fitAll = document.getElementById('fit-all');
   const toastContainer = document.getElementById('toast-container');
+  const welcomeOverlay = document.getElementById('welcome-overlay');
+  const welcomeNameInput = document.getElementById('welcome-name-input');
+  const welcomeStart = document.getElementById('welcome-start');
 
   // ============ HARİTA BAŞLATMA ============
   function initMap() {
@@ -154,11 +157,20 @@
       sendLocation();
     });
 
-    // Hoş geldin - otomatik, kullanıcı bir şey yapmak zorunda değil
+    // Hoş geldin - sunucu rastgele isim verir, biz kaydedilmiş isimle değiştiririz
     socket.on('welcome', (data) => {
       myId = data.id;
-      myName = data.name;
       myColor = data.color;
+
+      // localStorage'dan kaydedilmiş ismi al
+      const savedName = localStorage.getItem('erzurum-harita-name');
+      if (savedName) {
+        myName = savedName;
+        socket.emit('change-name', savedName);
+      } else {
+        myName = data.name;
+      }
+
       userNameEl.textContent = myName;
       userCard.classList.remove('hidden');
     });
@@ -450,19 +462,63 @@
     }
   }
 
-  // ============ BAŞLAT ============
-  function init() {
+  // ============ İSİM GİRİŞ EKRANI ============
+  function initWelcome() {
+    const savedName = localStorage.getItem('erzurum-harita-name');
+
+    if (savedName) {
+      // İsim zaten kayıtlı, direkt başla
+      welcomeOverlay.classList.add('hidden');
+      startApp();
+    } else {
+      // İsim giriş ekranını göster
+      welcomeOverlay.classList.remove('hidden');
+
+      welcomeNameInput.addEventListener('input', () => {
+        const val = welcomeNameInput.value.trim();
+        welcomeStart.disabled = val.length === 0;
+      });
+
+      welcomeStart.addEventListener('click', () => {
+        const name = welcomeNameInput.value.trim();
+        if (name) {
+          localStorage.setItem('erzurum-harita-name', name);
+          welcomeOverlay.classList.add('hidden');
+          startApp();
+        }
+      });
+
+      welcomeNameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !welcomeStart.disabled) {
+          welcomeStart.click();
+        }
+      });
+
+      // Input'a otomatik focus
+      setTimeout(() => welcomeNameInput.focus(), 300);
+    }
+  }
+
+  function startApp() {
     initMap();
     initSocket();
     initEvents();
-    startAutoLocation(); // Otomatik konum - kullanıcı hiçbir şey yapmak zorunda değil
+    startAutoLocation();
     registerSW();
+
+    // İsim değiştirme'de localStorage'ı da güncelle
+    const origNameSave = nameSave.onclick;
+    nameSave.addEventListener('click', () => {
+      const n = nameInput.value.trim();
+      if (n) localStorage.setItem('erzurum-harita-name', n);
+    });
   }
 
+  // ============ BAŞLAT ============
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', initWelcome);
   } else {
-    init();
+    initWelcome();
   }
 
 })();
